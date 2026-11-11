@@ -1,0 +1,39 @@
+services:
+
+  chatbot:
+    build: .
+    container_name: sicai_chatbot
+    ports:
+      - "3000:3000"
+    volumes:
+      # Índices e base estruturada ficam fora da imagem e fora do Git.
+      - ./data:/app/data
+      # PDFs locais (opcional; em produção os documentos vêm do Garage).
+      - ./processo_RAG:/app/processo_RAG:ro
+    env_file:
+      - .env
+    environment:
+      CREWAI_DISABLE_TELEMETRY: "true"
+      OTEL_SDK_DISABLED: "true"
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

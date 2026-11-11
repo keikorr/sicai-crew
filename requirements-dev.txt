@@ -1,0 +1,4 @@
+# Suficiente para rodar os testes: eles não carregam CrewAI nem os modelos.
+pytest
+pydantic
+numpy

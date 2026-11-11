@@ -1,0 +1,9 @@
+crewai[litellm]>=1.15,<2
+fastapi
+uvicorn
+pydantic
+numpy
+PyMuPDF
+python-dotenv
+sentence-transformers
+boto3

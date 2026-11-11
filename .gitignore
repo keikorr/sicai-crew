@@ -1,0 +1,15 @@
+venv/
+.venv/
+.env
+__pycache__/
+.pytest_cache/
+
+# Peças do processo, índices e base estruturada contêm dados pessoais e
+# sigilosos: nunca entram no repositório.
+data/
+processo_RAG/
+processo_FT/
+processo_GT/
+*.pdf
+*.sqlite
+*.npy
