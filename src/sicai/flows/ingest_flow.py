@@ -6,7 +6,7 @@ A ingestão é incremental: reingerir um documento substitui só os trechos e os
 registros dele, sem tocar no resto do processo.
 """
 
-from crewai.flow.flow import Flow, listen, start
+from crewai.flow import Flow, listen, start
 from pydantic import BaseModel, Field
 
 from sicai import config, jobs
@@ -59,7 +59,7 @@ class IngestFlow(Flow[IngestState]):
             inicio = "\n".join(p["texto"] for p in paginas[:2])
             tipo = rules.classificar_peca_por_regras(nome, inicio)
             if tipo == "outro" and usar_agentes and inicio.strip():
-                from sicai.crews.extraction_crew import classificar_peca
+                from sicai.crews.extraction_crew.extraction_crew import classificar_peca
 
                 tipo = classificar_peca(nome, inicio)
 
@@ -140,7 +140,7 @@ class IngestFlow(Flow[IngestState]):
         if not (self.state.extrair_com_agentes and config.EXTRACAO_LLM):
             return
 
-        from sicai.crews.extraction_crew import extrair_da_pagina
+        from sicai.crews.extraction_crew.extraction_crew import extrair_da_pagina
 
         db = obter_db()
         for doc in self.state.carregados:

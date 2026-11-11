@@ -1,0 +1,105 @@
+# As chaves entre chaves são preenchidas por crew.kickoff(inputs=...).
+# {sufixo} é "/no_think" (qwen3) ou vazio, conforme OLLAMA_NO_THINK.
+
+classificar_peca:
+  description: |
+    Classifique o documento '{documento}' em exatamente um destes tipos: {tipos}.
+
+    INÍCIO DO DOCUMENTO:
+    {texto}
+
+    {sufixo}
+  expected_output: >
+    JSON com a chave 'tipo_peca' contendo um dos tipos permitidos.
+  agent: classificador_de_pecas
+
+extrair_pessoas:
+  description: |
+    Leia a página {pagina} do documento '{documento}' abaixo.
+
+    Liste cada pessoa física citada com:
+    - nome: nome completo, igual ao texto
+    - cpf: se estiver na página, senão vazio
+    - papel: como a página a trata (réu, denunciado, acusado, investigado,
+      indiciado, vítima, testemunha, policial, perito, advogado, juiz, promotor,
+      delegado). Se a página não disser, deixe vazio
+    - contexto: uma frase curta, só com o que está escrito, sobre por que ela é citada
+
+    Não inclua órgãos, empresas nem nomes pela metade. Se não houver pessoas,
+    devolva a lista vazia.
+
+    TEXTO DA PÁGINA:
+    {texto}
+
+    {sufixo}
+  expected_output: >
+    JSON com a chave 'pessoas' contendo a lista de pessoas encontradas.
+  agent: extrator_de_pessoas
+
+extrair_crimes:
+  description: |
+    Leia a página {pagina} do documento '{documento}' (tipo: {tipo_peca}).
+
+    Liste cada crime ou imputação mencionado com:
+    - descricao: o crime como descrito na página
+    - artigo: artigo e lei, só se constarem na página
+    - autores: nomes completos apontados como autores, iguais ao texto
+    - status: 'acusação' se vier de denúncia, 'indício' se vier de boletim ou
+      relatório policial, 'decisão' se for decisão judicial
+
+    Não classifique um fato como crime se a página não o fizer. Se não houver
+    crimes, devolva a lista vazia.
+
+    TEXTO DA PÁGINA:
+    {texto}
+
+    {sufixo}
+  expected_output: >
+    JSON com a chave 'crimes' contendo a lista de crimes encontrados.
+  agent: extrator_de_crimes
+
+extrair_equipamentos:
+  description: |
+    Leia a página {pagina} do documento '{documento}' abaixo.
+
+    Liste cada objeto apreendido com:
+    - tipo: celular, notebook, chip, pendrive etc., como no texto
+    - subtipo e marca: se constarem
+    - quantidade: se constar
+    - identificadores: IMEI, número de série ou patrimônio, copiados dígito a dígito
+    - lacre: número do lacre, se constar
+    - pessoa_relacionada: de quem ou com quem foi apreendido, se constar
+    - observacoes: trecho literal relevante
+
+    Só liste objetos que a página diz terem sido apreendidos. Se não houver,
+    devolva a lista vazia.
+
+    TEXTO DA PÁGINA:
+    {texto}
+
+    {sufixo}
+  expected_output: >
+    JSON com a chave 'equipamentos' contendo a lista de objetos apreendidos.
+  agent: extrator_de_equipamentos
+
+extrair_eventos:
+  description: |
+    Leia a página {pagina} do documento '{documento}' abaixo.
+
+    Liste cada ato sobre objetos apreendidos com:
+    - tipo_evento: apreensão, lacração, encaminhamento, recebimento, perícia,
+      extração de dados, devolução ou outro
+    - data: como escrita na página
+    - item: objeto ou número de lacre a que o ato se refere
+    - responsavel: nome de quem praticou o ato, igual ao texto
+    - descricao: frase curta, só com o que está escrito
+
+    Se não houver atos desse tipo, devolva a lista vazia.
+
+    TEXTO DA PÁGINA:
+    {texto}
+
+    {sufixo}
+  expected_output: >
+    JSON com a chave 'eventos' contendo a lista de atos encontrados.
+  agent: extrator_de_eventos

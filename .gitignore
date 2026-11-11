@@ -13,3 +13,8 @@ processo_GT/
 *.pdf
 *.sqlite
 *.npy
+.crewai/
+*.egg-info/
+dist/
+chat_flow.html
+ingest_flow.html

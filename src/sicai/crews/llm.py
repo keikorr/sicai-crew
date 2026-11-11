@@ -1,4 +1,4 @@
-"""Peças comuns às crews: modelo de linguagem, fábrica de agentes e leitura de saída."""
+"""Peças comuns às crews: modelo de linguagem, opções dos agentes e leitura de saída."""
 
 import json
 import os
@@ -9,7 +9,7 @@ from functools import lru_cache
 os.environ.setdefault("CREWAI_DISABLE_TELEMETRY", "true")
 os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 
-from crewai import LLM, Agent  # noqa: E402
+from crewai import LLM  # noqa: E402
 
 from sicai import config  # noqa: E402
 
@@ -27,26 +27,23 @@ def criar_llm(temperatura: float = 0.2) -> LLM:
     )
 
 
-def criar_agente(perfil: dict, temperatura: float = 0.2) -> Agent:
-    """Agente sem ferramentas e sem delegação: uma chamada ao modelo por tarefa.
+def opcoes_do_agente(temperatura: float = 0.2) -> dict:
+    """Agentes sem ferramentas e sem delegação: uma chamada ao modelo por tarefa.
 
     O contexto é montado em código antes da tarefa. Modelos locais pequenos
     erram muito em laços de ferramentas, então eles não são usados aqui.
     """
-    return Agent(
-        role=perfil["role"],
-        goal=perfil["goal"],
-        backstory=perfil["backstory"],
-        llm=criar_llm(temperatura),
-        allow_delegation=False,
-        verbose=config.CREW_VERBOSE,
-        max_iter=3,
-    )
+    return {
+        "llm": criar_llm(temperatura),
+        "allow_delegation": False,
+        "max_iter": 3,
+        "verbose": config.CREW_VERBOSE,
+    }
 
 
-def descricao(texto: str) -> str:
-    """Acrescenta o desligamento do raciocínio separado do qwen3, se configurado."""
-    return texto + ("\n\n/no_think" if config.OLLAMA_NO_THINK else "")
+def sufixo() -> str:
+    """Valor de {sufixo} nas tarefas: desliga o raciocínio separado do qwen3."""
+    return "/no_think" if config.OLLAMA_NO_THINK else ""
 
 
 def limpar_resposta(texto: str) -> str:

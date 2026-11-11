@@ -8,8 +8,8 @@ services:
     volumes:
       # Índices e base estruturada ficam fora da imagem e fora do Git.
       - ./data:/app/data
-      # PDFs locais (opcional; em produção os documentos vêm do Garage).
-      - ./processo_RAG:/app/processo_RAG:ro
+      # PDFs locais e os enviados pela interface (em produção podem vir do Garage).
+      - ./processo_RAG:/app/processo_RAG
     env_file:
       - .env
     environment:

@@ -1,0 +1,200 @@
+# As chaves entre chaves são preenchidas por crew.kickoff(inputs=...).
+# {regras} vem de config/regras.md; {sufixo} é "/no_think" (qwen3) ou vazio.
+# Há uma tarefa por rota do roteador: responder_<rota>.
+
+conversar:
+  description: |
+    Responda em uma ou duas frases à mensagem abaixo. Se fizer sentido, diga
+    que pode ajudar com perguntas sobre pessoas, crimes e equipamentos
+    apreendidos do processo.
+
+    MENSAGEM:
+    {pergunta}
+
+    {sufixo}
+  expected_output: >
+    Resposta curta e cordial em português.
+  agent: atendente
+
+responder_pessoas:
+  description: |
+    Responda sobre as pessoas do processo usando os REGISTROS DE PESSOAS. Cada
+    REGISTRO é uma pessoa: não crie duas linhas para o mesmo registro. Em
+    listagens use a tabela: Nome | Papel | Crimes atribuídos | Equipamentos
+    vinculados | Fontes.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: &saida_resposta >
+    Resposta em português, objetiva, com (Documento, p. N) após cada afirmação
+    factual. Em respostas extensas, finalize listando ambiguidades, informações
+    ausentes e divergências entre fontes.
+  agent: especialista_pessoas
+
+responder_crimes:
+  description: |
+    Responda sobre os crimes usando os REGISTROS DE CRIMES. Em listagens use a
+    tabela: Crime | Autor(es) apontado(s) | Status | Fontes.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: *saida_resposta
+  agent: especialista_crimes
+
+responder_equipamentos:
+  description: |
+    Responda usando os REGISTROS DE EQUIPAMENTOS. Cada REGISTRO é um item
+    canônico: nunca crie mais de uma linha para o mesmo registro por haver
+    várias fontes. 'REGISTRO N' é rótulo interno; identifique o item por Tipo
+    e Subtipo. Em listagens use a tabela: Descrição | Identificadores |
+    Apreendido de/com | Documento de apreensão | Fontes.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: *saida_resposta
+  agent: especialista_equipamentos
+
+responder_custodia:
+  description: |
+    Descreva em ordem cronológica os atos registrados na LINHA DO TEMPO para
+    os itens perguntados. Liste ao final as etapas sem registro como
+    INFORMAÇÃO AUSENTE. Não conclua sobre regularidade.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: *saida_resposta
+  agent: analista_custodia
+
+responder_inconsistencias:
+  description: |
+    As DIVERGÊNCIAS DETECTADAS abaixo foram encontradas por comparação
+    automática dos registros. Explique cada uma em linguagem clara, com as
+    fontes de cada versão. Não acrescente divergências que não estejam na
+    lista e não escolha uma versão.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: *saida_resposta
+  agent: analista_inconsistencias
+
+responder_conformidade:
+  description: |
+    Compare os ATOS REGISTRADOS com os TRECHOS NORMATIVOS do CONTEXTO. Para
+    cada exigência normativa presente nos trechos, diga se há ato
+    correspondente registrado, citando as duas fontes. Se não houver TRECHOS
+    NORMATIVOS, informe que a base normativa não foi carregada e limite-se a
+    descrever os atos registrados.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: *saida_resposta
+  agent: analista_conformidade
+
+responder_narrativa:
+  description: |
+    Responda à pergunta com base nos TRECHOS RECUPERADOS. Perguntas simples
+    pedem resposta direta e curta, com a fonte.
+
+    {regras}
+
+    HISTÓRICO RECENTE DA CONVERSA:
+    {historico}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    {sufixo}
+  expected_output: *saida_resposta
+  agent: analista_narrativa
+
+revisar:
+  description: |
+    A resposta abaixo foi reprovada pela verificação automática.
+
+    PROBLEMAS ENCONTRADOS:
+    {problemas}
+
+    Reescreva a resposta corrigindo apenas esses problemas:
+    - troque citações inválidas pela fonte correta do CONTEXTO, ou remova a
+      afirmação se o CONTEXTO não a sustentar;
+    - remova números e códigos que não aparecem no CONTEXTO;
+    - mantenha o restante e o formato original.
+
+    {regras}
+
+    CONTEXTO:
+    {contexto}
+
+    PERGUNTA DO USUÁRIO:
+    {pergunta}
+
+    RESPOSTA REPROVADA:
+    {resposta}
+
+    {sufixo}
+  expected_output: >
+    A resposta corrigida, sem comentários sobre a revisão.
+  agent: revisor_citacoes

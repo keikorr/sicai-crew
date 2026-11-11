@@ -12,7 +12,7 @@ pytest.importorskip("crewai")
 from crewai import BaseLLM  # noqa: E402
 
 from sicai import config  # noqa: E402
-from sicai.crews import base  # noqa: E402
+from sicai.crews import llm as base  # noqa: E402
 from sicai.extraction import resolver  # noqa: E402
 from sicai.store.case_db import CaseDB  # noqa: E402
 from sicai.store.vector_store import VectorStore  # noqa: E402
@@ -73,7 +73,7 @@ def test_llm_do_ollama_e_construido_sem_rede():
 
 
 def test_crew_de_extracao_roda_um_agente_por_categoria(llm):
-    from sicai.crews.extraction_crew import extrair_da_pagina
+    from sicai.crews.extraction_crew.extraction_crew import extrair_da_pagina
 
     falso = llm(
         json.dumps({"pessoas": [{"nome": "Beltrano Souza", "papel": "investigado"}]}),
@@ -235,3 +235,41 @@ def test_api(llm, db, monkeypatch):
     monkeypatch.setattr(config, "API_KEY", "segredo")
     assert cliente.get(f"/api/processos/{P}").status_code == 401
     assert cliente.get(f"/api/processos/{P}", headers={"X-API-Key": "segredo"}).status_code == 200
+
+
+def test_interface_e_envio_de_pdf(llm, ingestao, tmp_path, monkeypatch):
+    pytest.importorskip("httpx")
+    pytest.importorskip("multipart")
+    from fastapi.testclient import TestClient
+
+    from sicai import api
+    from sicai.flows import ingest_flow
+
+    llm()
+    monkeypatch.setattr(api, "obter_db", lambda: ingestao)
+    monkeypatch.setattr(config, "DOCS_FOLDER", str(tmp_path / "docs"))
+    recebidos = []
+    monkeypatch.setattr(ingest_flow, "baixar_pdf", lambda document_id: recebidos.append(document_id) or b"")
+    cliente = TestClient(api.app)
+
+    pagina = cliente.get("/")
+    assert pagina.status_code == 200 and "<title>SICAI</title>" in pagina.text
+    assert cliente.get("/api/info").json()["exige_chave"] is False
+
+    rota = f"/api/processos/{P}/documentos"
+    pdf = ("../../Auto 31-2021.pdf", b"%PDF-1.4 falso", "application/pdf")
+    envio = cliente.post(rota, files={"arquivos": pdf}, data={"extrair_com_agentes": "false"})
+
+    assert envio.status_code == 202 and envio.json()["documentos"] == ["Auto 31-2021.pdf"]
+    # O nome malicioso não sai da pasta do processo.
+    assert [a.name for a in (tmp_path / "docs").rglob("*.pdf")] == ["Auto 31-2021.pdf"]
+    assert (tmp_path / "docs" / P / "Auto 31-2021.pdf").is_file()
+    assert recebidos == [f"{P}/Auto 31-2021.pdf"]
+    # O TestClient roda a tarefa em segundo plano antes de devolver a resposta.
+    assert cliente.get(f"/api/ingest/{envio.json()['job_id']}").json()["status"] == "concluída"
+    assert cliente.get("/api/processos").json() == [
+        {"processo_id": P, "documentos": 1, "paginas": 1}
+    ]
+
+    nao_pdf = ("x.pdf", b"texto", "application/pdf")
+    assert cliente.post(rota, files={"arquivos": nao_pdf}).status_code == 422

@@ -89,6 +89,14 @@ class CaseDB:
                 [(processo_id, document_id, p["pagina"], p["texto"]) for p in paginas],
             )
 
+    def listar_processos(self) -> list[dict]:
+        with self._transacao() as con:
+            linhas = con.execute(
+                "SELECT processo_id, COUNT(*) AS documentos, SUM(paginas) AS paginas "
+                "FROM documentos GROUP BY processo_id ORDER BY processo_id"
+            ).fetchall()
+        return [dict(linha) for linha in linhas]
+
     def listar_documentos(self, processo_id: str) -> list[dict]:
         with self._transacao() as con:
             linhas = con.execute(

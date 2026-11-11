@@ -10,11 +10,11 @@ verificação reprovar, o revisor.
 
 from typing import Literal
 
-from crewai.flow.flow import Flow, listen, router, start
+from crewai.flow import Flow, listen, router, start
 from pydantic import BaseModel, Field
 
 from sicai import config, context, verifier
-from sicai.crews import answer_crew
+from sicai.crews.answer_crew import answer_crew
 from sicai.router import classificar
 from sicai.store.case_db import obter_db
 

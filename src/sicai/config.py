@@ -19,7 +19,7 @@ def _bool(nome: str, padrao: str) -> bool:
 # --- Armazenamento -----------------------------------------------------------
 DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
 # Pasta local com PDFs. Se o document_id existir aqui, o Garage não é consultado.
-DOCS_FOLDER = os.getenv("DOCS_FOLDER", "")
+DOCS_FOLDER = os.getenv("DOCS_FOLDER", "processo_RAG")
 
 # --- Garage (S3 compatível) --------------------------------------------------
 GARAGE_ENDPOINT = os.getenv("GARAGE_ENDPOINT", "")
@@ -57,6 +57,7 @@ EXTRACAO_MAX_CHARS = int(os.getenv("EXTRACAO_MAX_CHARS", "6000"))
 # --- API ---------------------------------------------------------------------
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 API_KEY = os.getenv("API_KEY", "")  # vazio = sem autenticação (só para desenvolvimento)
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "200"))
 
 # Índice separado com legislação e protocolos, usado pela rota de conformidade.
 PROCESSO_NORMAS = "_normas"

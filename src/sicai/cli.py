@@ -1,7 +1,7 @@
 """Linha de comando para ingerir uma pasta local e fazer perguntas.
 
-    python -m sicai.cli ingest --processo vernix --pasta processo_RAG
-    python -m sicai.cli chat   --processo vernix "Quais equipamentos foram apreendidos?"
+    uv run ingest ingest --processo vernix --pasta processo_RAG
+    uv run ingest chat   --processo vernix "Quais equipamentos foram apreendidos?"
 """
 
 import argparse
@@ -55,7 +55,7 @@ def main() -> None:
     chat.add_argument("pergunta")
     chat.set_defaults(func=_chat)
 
-    args = parser.parse_args()
+    args = parser.parse_args()  # usado também por `uv run ingest`
     args.func(args)
 
 
